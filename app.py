@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
-# app.css.append_css({external_stylesheets:[dbc.themes.CYBORG]})
+
 
 def build_banner():
     return html.Nav(
@@ -20,6 +20,7 @@ def build_banner():
                 ])
 
         ],style={'color': 'white'})
+
 
 def build_sidebar():
     return html.Div(
@@ -90,12 +91,14 @@ def build_sidebar():
                     # html.Div(className='btn-group btn-group-toggle',
                     #          role='group',
                     #          children=[
-                    dbc.ButtonGroup([
-                                 dbc.Button('Day',className="btn btn-secondary", id='day', n_clicks=0),
-                                 dbc.Button('Week', className="btn btn-secondary", id='week', n_clicks=0 ),
-                                 dbc.Button('Month', className="btn btn-secondary", id='month', n_clicks=0),
-                                 dbc.Button('Quarter', className="btn btn-secondary", id='quarter', n_clicks=0 ),
-                                 dbc.Button('Year', className="btn btn-secondary", id='year', n_clicks=0)
+                    dbc.ButtonGroup(
+                                className="btn-group btn-group-toggle",
+                                children=[
+                                 dbc.Button('Day',className="btn btn-primary", id='day', n_clicks=0, color='primary'),
+                                 dbc.Button('Week', className="btn btn-primary", id='week', n_clicks=0, color='primary'),
+                                 dbc.Button('Month', className="btn btn-primary", id='month', n_clicks=0, color='primary'),
+                                 dbc.Button('Quarter', className="btn btn-primary", id='quarter', n_clicks=0, color='primary'),
+                                 dbc.Button('Year', className="btn btn-primary", id='year', n_clicks=0, color='primary')
                              ])
                              # ])
                 ]),
@@ -103,7 +106,6 @@ def build_sidebar():
             html.Br(),
 
             dbc.FormGroup(
-                # className='custom-control custom-switch',
                 children=[
                     dbc.Checklist(
                         options=[{"Add Smoother": "Smoother", "value": 1}],
@@ -139,6 +141,7 @@ def build_sidebar():
 
     )
 
+
 def build_graph():
     return html.Div(
         className='eight columns',
@@ -154,6 +157,7 @@ def build_graph():
         ]
     )
 
+
 app.layout = html.Div(
     [
     build_banner(),
@@ -166,47 +170,61 @@ app.layout = html.Div(
     className='twelve columns'
 )
 
-@app.callback(dash.dependencies.Output('day', 'active'),
-              [dash.dependencies.Input('day', 'n_clicks')])
+
+@app.callback(Output('day', 'active'),
+              [Input('day', 'n_clicks')])
 def update_day_button(n_clicks):
-    print('Day')
-    if n_clicks % 2 == 0:
+
+    if n_clicks % 2 == 0 or n_clicks == 0:
+        print('Day', n_clicks)
         return False
     else:
         return True
 
-@app.callback(dash.dependencies.Output('week', 'active'),
-              [dash.dependencies.Input('week', 'n_clicks')])
+
+@app.callback(Output('week', 'active'),
+              [Input('week', 'n_clicks')])
 def update_day_button(n_clicks):
-    print('week')
-    if n_clicks % 2 == 0:
+
+    if n_clicks % 2 == 0 or n_clicks == 0:
+        print('week')
         return False
     else:
         return True
-@app.callback(dash.dependencies.Output('month', 'active'),
-              [dash.dependencies.Input('month', 'n_clicks')])
+
+
+@app.callback(Output('month', 'active'),
+              [Input('month', 'n_clicks')])
 def update_day_button(n_clicks):
-    print('Month')
-    if n_clicks % 2 == 0:
+
+    if n_clicks % 2 == 0 or n_clicks == 0:
+        print('Month')
         return False
     else:
         return True
-@app.callback(dash.dependencies.Output('quarter', 'active'),
-              [dash.dependencies.Input('quarter', 'n_clicks')])
+
+
+@app.callback(Output('quarter', 'active'),
+              [Input('quarter', 'n_clicks')])
 def update_day_button(n_clicks):
-    print('Quarter')
-    if n_clicks % 2 == 0:
+
+    if n_clicks % 2 == 0 or n_clicks == 0:
+        print('Quarter')
         return False
     else:
         return True
-@app.callback(dash.dependencies.Output('year', 'active'),
-              [dash.dependencies.Input('year', 'n_clicks')])
+
+
+@app.callback(Output('year', 'active'),
+              [Input('year', 'n_clicks')])
 def update_day_button(n_clicks):
-    print('Year')
-    if n_clicks % 2 == 0:
+
+    if n_clicks % 2 == 0 or n_clicks == 0:
+        print('Year')
         return False
     else:
         return True
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)
