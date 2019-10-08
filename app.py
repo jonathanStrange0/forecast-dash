@@ -3,9 +3,13 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input
+from functions.collect_bike_data import collect_bike_data
+import pandas as pd
+import numpy as np
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
-
+df = collect_bike_data("assets/bikes_database.sqlite")
+print(df.head())
 
 def build_banner():
     return html.Nav(
@@ -47,11 +51,12 @@ def build_sidebar():
             html.Div(
                 children=[
                     html.Label('Choose a Product Group'),
-                    dbc.Select(
+                    dcc.Dropdown(
                         className="dcc_control",
-                        options=[{'label': 'XGBoost', 'value': 'xgboost'},
-                                 {'label': 'GLMNet', 'value': 'glmnet'}],
-                        value='xgboost'
+                        options=[{'label': name, 'value': name.lower()} for name in \
+                                                        np.sort(df['category.1'].unique().tolist())],
+                        multi=True,
+                        value=[name.lower() for name in np.sort(df['category.1'].unique().tolist())],
                     )
                 ]),
 
@@ -60,10 +65,11 @@ def build_sidebar():
             html.Div(
                 children=[
                     html.Label('Choose a Product Sub Group'),
-                    dbc.Select(
-                        options=[{'label': 'XGBoost', 'value': 'xgboost'},
-                                 {'label': 'GLMNet', 'value': 'glmnet'}],
-                        value='xgboost'
+                    dcc.Dropdown(
+                        options=[{'label': name, 'value': name.lower()} for name in \
+                                                        np.sort(df['category.2'].unique().tolist())],
+                        value=[name.lower() for name in np.sort(df['category.2'].unique().tolist())],
+                        multi=True
                     )
                 ]),
 
@@ -73,11 +79,12 @@ def build_sidebar():
 
                 children=[
                     html.Label('Choose Customers'),
-                    dbc.Select(
-                        # className='form-control',
-                        options=[{'label': 'XGBoost', 'value': 'xgboost'},
-                                 {'label': 'GLMNet', 'value': 'glmnet'}],
-                        value='xgboost'
+                    dcc.Dropdown(
+                        className ="select",
+                        options=[{'label': name, 'value': name.lower()} for name in \
+                                 np.sort(df['bikeshop.name'].unique().tolist())],
+                        value=[name.lower() for name in np.sort(df['bikeshop.name'].unique().tolist())],
+                        multi=True
                     )
 
                 ]),
@@ -93,6 +100,7 @@ def build_sidebar():
                     #          children=[
                     dbc.ButtonGroup(
                                 className="btn-group btn-group-toggle",
+                                id='btnGroup',
                                 children=[
                                  dbc.Button('Day',className="btn btn-primary", id='day', n_clicks=0, color='primary'),
                                  dbc.Button('Week', className="btn btn-primary", id='week', n_clicks=0, color='primary'),
@@ -133,9 +141,10 @@ def build_sidebar():
             html.Div(
                 children=[
                     # html.Label('Choose Time Series Aggregation Period'),
-                    html.Button('Calculate Forecast', className='btn btn-success btn-lg')
+                    html.Button('Calculate Forecast', className='btn btn-success btn-lg'),
                 ]
             ),
+
 
         ]
 
@@ -170,16 +179,17 @@ app.layout = html.Div(
     className='twelve columns'
 )
 
-
-@app.callback(Output('day', 'active'),
-              [Input('day', 'n_clicks')])
-def update_day_button(n_clicks):
-
-    if n_clicks % 2 == 0 or n_clicks == 0:
-        print('Day', n_clicks)
-        return False
-    else:
-        return True
+#
+# @app.callback(Output('btnGroup', 'children'),
+#               [Input('day', 'n_clicks')])
+# def update_day_button(n_clicks):
+#
+#     if n_clicks % 2 == 0 or n_clicks == 0:
+#         print('Day', n_clicks)
+#         return dict(id="day",
+#                 active=False)
+#     else:
+#         return True
 
 
 @app.callback(Output('week', 'active'),
