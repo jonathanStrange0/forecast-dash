@@ -52,6 +52,7 @@ def build_sidebar():
                 children=[
                     html.Label('Choose a Product Group'),
                     dcc.Dropdown(
+                        id='product-group',
                         className="dcc_control",
                         options=[{'label': name, 'value': name.lower()} for name in \
                                                         np.sort(df['category.1'].unique().tolist())],
@@ -66,6 +67,7 @@ def build_sidebar():
                 children=[
                     html.Label('Choose a Product Sub Group'),
                     dcc.Dropdown(
+                        id='product-subgroup',
                         options=[{'label': name, 'value': name.lower()} for name in \
                                                         np.sort(df['category.2'].unique().tolist())],
                         value=[name.lower() for name in np.sort(df['category.2'].unique().tolist())],
@@ -80,6 +82,7 @@ def build_sidebar():
                 children=[
                     html.Label('Choose Customers'),
                     dcc.Dropdown(
+                        id='customers',
                         className ="select",
                         options=[{'label': name, 'value': name.lower()} for name in \
                                  np.sort(df['bikeshop.name'].unique().tolist())],
@@ -99,8 +102,8 @@ def build_sidebar():
                     #          role='group',
                     #          children=[
                     dbc.ButtonGroup(
-                                className="btn-group btn-group-toggle",
-                                id='btnGroup',
+                                className="btn-group btn-group-radio",
+                                id='date-agg',
                                 children=[
                                  dbc.Button('Day',className="btn btn-primary", id='day', n_clicks=0, color='primary'),
                                  dbc.Button('Week', className="btn btn-primary", id='week', n_clicks=0, color='primary'),
@@ -132,7 +135,8 @@ def build_sidebar():
             html.Div(
                 children=[
                     html.Label('Choose Time Series Aggregation Period'),
-                    dcc.Input('Forecast Horizon', className='form-control-lg')
+                    dcc.Input(id='horizon',
+                              className='form-control-lg')
                 ]
             ),
 
@@ -141,7 +145,9 @@ def build_sidebar():
             html.Div(
                 children=[
                     # html.Label('Choose Time Series Aggregation Period'),
-                    html.Button('Calculate Forecast', className='btn btn-success btn-lg'),
+                    html.Button('Calculate Forecast',
+                                id='foreceast',
+                                className='btn btn-success btn-lg'),
                 ]
             ),
 
@@ -159,7 +165,7 @@ def build_graph():
                 html.Div(children=[html.H4('Revenue Forecast')], className='ten columns offset by one'),
                   html.Div([
                       dcc.Graph(
-                          id='example-graph'
+                          id='graph'
                       )
                   ],
         className='ten columns offset by one'),
@@ -197,9 +203,10 @@ app.layout = html.Div(
 def update_day_button(n_clicks):
 
     if n_clicks % 2 == 0 or n_clicks == 0:
-        print('week')
+
         return False
     else:
+        print('week')
         return True
 
 
@@ -208,9 +215,10 @@ def update_day_button(n_clicks):
 def update_day_button(n_clicks):
 
     if n_clicks % 2 == 0 or n_clicks == 0:
-        print('Month')
+
         return False
     else:
+        print('Month')
         return True
 
 
@@ -219,9 +227,10 @@ def update_day_button(n_clicks):
 def update_day_button(n_clicks):
 
     if n_clicks % 2 == 0 or n_clicks == 0:
-        print('Quarter')
+
         return False
     else:
+        print('Quarter')
         return True
 
 
@@ -230,10 +239,31 @@ def update_day_button(n_clicks):
 def update_day_button(n_clicks):
 
     if n_clicks % 2 == 0 or n_clicks == 0:
-        print('Year')
+
         return False
     else:
+        print('Year')
         return True
+
+
+@app.callback(Output('forecast-graph', 'figure'),
+              [Input('forecast', 'n_clicks'),
+               Input('product-group', 'value'),
+               Input('product-subgroup', 'value'),
+                Input('customers', 'value')
+               ])
+def update_forecast_button(n_clicks,
+                           product_group_values,
+                           prod_sub_group_values,
+                           customer_values):
+    product_group_filter = ''.join([x+'|' for x in product_group_values])
+    prod_subgroup_filter = ''.join([x + '|' for x in prod_sub_group_values])
+    customer_filter = ''.join([x + '|' for x in customer_values])
+    filtered_bikes_df = df[(df['category.1'].str.contains(product_group_filter)) &
+                           (df['category.2'].str.contains(prod_subgroup_filter)) &
+                           (df['bikeshop.name'].str.contains(customer_filter))]
+
+    return filtered_bikes_df
 
 
 if __name__ == "__main__":
