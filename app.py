@@ -103,16 +103,18 @@ def build_sidebar():
                     # html.Div(className='btn-group btn-group-toggle',
                     #          role='group',
                     #          children=[
-                    dbc.ButtonGroup(
-                                className="btn-group btn-group-radio",
+                    dcc.Dropdown(
+                                className="select",
                                 id='date-agg',
-                                children=[
-                                 dbc.Button('Day',className="btn btn-primary", id='day', n_clicks=0, color='primary'),
-                                 dbc.Button('Week', className="btn btn-primary", id='week', n_clicks=0, color='primary'),
-                                 dbc.Button('Month', className="btn btn-primary", id='month', n_clicks=0, color='primary'),
-                                 dbc.Button('Quarter', className="btn btn-primary", id='quarter', n_clicks=0, color='primary'),
-                                 dbc.Button('Year', className="btn btn-primary", id='year', n_clicks=0, color='primary')
-                             ])
+                                options=[
+                                    {'label':'Day','value':'Day'},
+                                    {'label': 'Week', 'value':'Week'},
+                                    {'label': 'Month', 'value':'Month'},
+                                    {'label': 'Quarter', 'value':'Quarter'},
+                                    {'label': 'Year', 'value':'Year'}
+                             ],
+                                value='Week'
+                    )
                              # ])
                 ]),
 
@@ -187,77 +189,19 @@ app.layout = html.Div(
     className='twelve columns'
 )
 
-#
-# @app.callback(Output('btnGroup', 'children'),
-#               [Input('day', 'n_clicks')])
-# def update_day_button(n_clicks):
-#
-#     if n_clicks % 2 == 0 or n_clicks == 0:
-#         print('Day', n_clicks)
-#         return dict(id="day",
-#                 active=False)
-#     else:
-#         return True
-
-
-@app.callback(Output('week', 'active'),
-              [Input('week', 'n_clicks')])
-def update_day_button(n_clicks):
-
-    if n_clicks % 2 == 0 or n_clicks == 0:
-
-        return False
-    else:
-        print('week')
-        return True
-
-
-@app.callback(Output('month', 'active'),
-              [Input('month', 'n_clicks')])
-def update_day_button(n_clicks):
-
-    if n_clicks % 2 == 0 or n_clicks == 0:
-
-        return False
-    else:
-        print('Month')
-        return True
-
-
-@app.callback(Output('quarter', 'active'),
-              [Input('quarter', 'n_clicks')])
-def update_day_button(n_clicks):
-
-    if n_clicks % 2 == 0 or n_clicks == 0:
-
-        return False
-    else:
-        print('Quarter')
-        return True
-
-
-@app.callback(Output('year', 'active'),
-              [Input('year', 'n_clicks')])
-def update_day_button(n_clicks):
-
-    if n_clicks % 2 == 0 or n_clicks == 0:
-
-        return False
-    else:
-        print('Year')
-        return True
-
 
 @app.callback(Output('forecast-graph', 'figure'),
               [Input('forecast', 'n_clicks'),
                Input('product-group', 'value'),
                Input('product-subgroup', 'value'),
-               Input('customers', 'value')
+               Input('customers', 'value'),
+                Input('date-agg', 'value')
                ])
 def update_forecast_button(n_clicks,
                            product_group_values,
                            prod_sub_group_values,
-                           customer_values):
+                           customer_values,
+                           date_agg_value):
     print(product_group_values, '\n', prod_sub_group_values, '\n', customer_values)
     product_group_filter = ''.join([x + '|' for x in product_group_values])[:-1]
     prod_subgroup_filter = ''.join([x + '|' for x in prod_sub_group_values])[:-1]
@@ -273,7 +217,7 @@ def update_forecast_button(n_clicks,
 
     filtered_bikes_df = df[product_group_mask & prod_subgroup_mask & customer_mask]
 
-    sales_df = aggregate_time_series(filtered_bikes_df, 'Week')
+    sales_df = aggregate_time_series(filtered_bikes_df, date_agg_value)
     print(sales_df.head())
     history = go.Scatter(x=list(sales_df.index),
                          y=list(sales_df.price_ext),
