@@ -2,14 +2,16 @@ import dash
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
+import plotly.graph_objs as go
 from dash.dependencies import Output, Input
 from functions.collect_bike_data import collect_bike_data
+from functions.aggregate_time_series import aggregate_time_series
 import pandas as pd
 import numpy as np
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 df = collect_bike_data("assets/bikes_database.sqlite")
-print(df.head())
+# print(df.head())
 
 def build_banner():
     return html.Nav(
@@ -54,10 +56,10 @@ def build_sidebar():
                     dcc.Dropdown(
                         id='product-group',
                         className="dcc_control",
-                        options=[{'label': name, 'value': name.lower()} for name in \
+                        options=[{'label': name, 'value': name} for name in \
                                                         np.sort(df['category.1'].unique().tolist())],
                         multi=True,
-                        value=[name.lower() for name in np.sort(df['category.1'].unique().tolist())],
+                        value=[name for name in np.sort(df['category.1'].unique().tolist())],
                     )
                 ]),
 
@@ -68,9 +70,9 @@ def build_sidebar():
                     html.Label('Choose a Product Sub Group'),
                     dcc.Dropdown(
                         id='product-subgroup',
-                        options=[{'label': name, 'value': name.lower()} for name in \
+                        options=[{'label': name, 'value': name} for name in \
                                                         np.sort(df['category.2'].unique().tolist())],
-                        value=[name.lower() for name in np.sort(df['category.2'].unique().tolist())],
+                        value=[name for name in np.sort(df['category.2'].unique().tolist())],
                         multi=True
                     )
                 ]),
@@ -84,9 +86,9 @@ def build_sidebar():
                     dcc.Dropdown(
                         id='customers',
                         className ="select",
-                        options=[{'label': name, 'value': name.lower()} for name in \
+                        options=[{'label': name, 'value': name} for name in \
                                  np.sort(df['bikeshop.name'].unique().tolist())],
-                        value=[name.lower() for name in np.sort(df['bikeshop.name'].unique().tolist())],
+                        value=[name for name in np.sort(df['bikeshop.name'].unique().tolist())],
                         multi=True
                     )
 
@@ -146,7 +148,7 @@ def build_sidebar():
                 children=[
                     # html.Label('Choose Time Series Aggregation Period'),
                     html.Button('Calculate Forecast',
-                                id='foreceast',
+                                id='forecast',
                                 className='btn btn-success btn-lg'),
                 ]
             ),
@@ -165,7 +167,7 @@ def build_graph():
                 html.Div(children=[html.H4('Revenue Forecast')], className='ten columns offset by one'),
                   html.Div([
                       dcc.Graph(
-                          id='graph'
+                          id='forecast-graph'
                       )
                   ],
         className='ten columns offset by one'),
@@ -250,20 +252,40 @@ def update_day_button(n_clicks):
               [Input('forecast', 'n_clicks'),
                Input('product-group', 'value'),
                Input('product-subgroup', 'value'),
-                Input('customers', 'value')
+               Input('customers', 'value')
                ])
 def update_forecast_button(n_clicks,
                            product_group_values,
                            prod_sub_group_values,
                            customer_values):
-    product_group_filter = ''.join([x+'|' for x in product_group_values])
-    prod_subgroup_filter = ''.join([x + '|' for x in prod_sub_group_values])
-    customer_filter = ''.join([x + '|' for x in customer_values])
-    filtered_bikes_df = df[(df['category.1'].str.contains(product_group_filter)) &
-                           (df['category.2'].str.contains(prod_subgroup_filter)) &
-                           (df['bikeshop.name'].str.contains(customer_filter))]
+    print(product_group_values, '\n', prod_sub_group_values, '\n', customer_values)
+    product_group_filter = ''.join([x + '|' for x in product_group_values])[:-1]
+    prod_subgroup_filter = ''.join([x + '|' for x in prod_sub_group_values])[:-1]
+    customer_filter = ''.join([x + '|' for x in customer_values])[:-1]
 
-    return filtered_bikes_df
+    print('Filters \n', product_group_filter, '\n', prod_subgroup_filter, '\n', customer_filter)
+
+    product_group_mask = df['category.1'].str.contains(product_group_filter, regex=True)
+    prod_subgroup_mask = df['category.2'].str.contains(prod_subgroup_filter, regex=True)
+    customer_mask = df['bikeshop.name'].str.contains(customer_filter, regex=True)
+
+    print('Masks \n', product_group_mask.value_counts(), '\n', prod_subgroup_mask.value_counts(), '\n', customer_mask.value_counts())
+
+    filtered_bikes_df = df[product_group_mask & prod_subgroup_mask & customer_mask]
+
+    sales_df = aggregate_time_series(filtered_bikes_df, 'Week')
+    print(sales_df.head())
+    history = go.Scatter(x=list(sales_df.index),
+                         y=list(sales_df.price_ext),
+                         name='Sales History',
+                         line=dict(color='#6e1c8c'))
+
+    graph_layout = dict(title='Sales Forecast Chart')
+
+    fig = dict(data=[history],
+               layout=graph_layout)
+
+    return fig
 
 
 if __name__ == "__main__":
