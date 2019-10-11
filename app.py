@@ -13,6 +13,27 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 df = collect_bike_data("assets/bikes_database.sqlite")
 # print(df.head())
 
+
+### Helper functions ###
+def filter_table(product_group_values, prod_sub_group_values,customer_values):
+    print(product_group_values, '\n', prod_sub_group_values, '\n', customer_values)
+    product_group_filter = ''.join([x + '|' for x in product_group_values])[:-1]
+    prod_subgroup_filter = ''.join([x + '|' for x in prod_sub_group_values])[:-1]
+    customer_filter = ''.join([x + '|' for x in customer_values])[:-1]
+
+    print('Filters \n', product_group_filter, '\n', prod_subgroup_filter, '\n', customer_filter)
+
+    product_group_mask = df['category.1'].str.contains(product_group_filter, regex=True)
+    prod_subgroup_mask = df['category.2'].str.contains(prod_subgroup_filter, regex=True)
+    customer_mask = df['bikeshop.name'].str.contains(customer_filter, regex=True)
+
+    print('Masks \n', product_group_mask.value_counts(), '\n', prod_subgroup_mask.value_counts(), '\n',
+          customer_mask.value_counts())
+
+    filtered_bikes_df = df[product_group_mask & prod_subgroup_mask & customer_mask]
+
+    return filtered_bikes_df
+
 def build_banner():
     return html.Nav(
         id="banner",
@@ -202,27 +223,17 @@ def update_forecast_button(n_clicks,
                            prod_sub_group_values,
                            customer_values,
                            date_agg_value):
-    print(product_group_values, '\n', prod_sub_group_values, '\n', customer_values)
-    product_group_filter = ''.join([x + '|' for x in product_group_values])[:-1]
-    prod_subgroup_filter = ''.join([x + '|' for x in prod_sub_group_values])[:-1]
-    customer_filter = ''.join([x + '|' for x in customer_values])[:-1]
 
-    print('Filters \n', product_group_filter, '\n', prod_subgroup_filter, '\n', customer_filter)
-
-    product_group_mask = df['category.1'].str.contains(product_group_filter, regex=True)
-    prod_subgroup_mask = df['category.2'].str.contains(prod_subgroup_filter, regex=True)
-    customer_mask = df['bikeshop.name'].str.contains(customer_filter, regex=True)
-
-    print('Masks \n', product_group_mask.value_counts(), '\n', prod_subgroup_mask.value_counts(), '\n', customer_mask.value_counts())
-
-    filtered_bikes_df = df[product_group_mask & prod_subgroup_mask & customer_mask]
+    filtered_bikes_df = filter_table(product_group_values, prod_sub_group_values,customer_values)
 
     sales_df = aggregate_time_series(filtered_bikes_df, date_agg_value)
+
     print(sales_df.head())
+
     history = go.Scatter(x=list(sales_df.index),
                          y=list(sales_df.price_ext),
                          name='Sales History',
-                         line=dict(color='#6e1c8c'))
+                         line=dict(color='#2C3E4D'))
 
     graph_layout = dict(title='Sales Forecast Chart')
 
@@ -234,3 +245,5 @@ def update_forecast_button(n_clicks,
 
 if __name__ == "__main__":
     app.run_server(debug=True)
+
+
