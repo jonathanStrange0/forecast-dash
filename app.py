@@ -6,6 +6,7 @@ import plotly.graph_objs as go
 from dash.dependencies import Output, Input
 from functions.collect_bike_data import collect_bike_data
 from functions.aggregate_time_series import aggregate_time_series
+from functions.predict_n_future_sales import predict_n_future_sales
 import pandas as pd
 import numpy as np
 
@@ -161,6 +162,7 @@ def build_sidebar():
                 children=[
                     html.Label('Choose Time Series Aggregation Period'),
                     dcc.Input(id='horizon',
+                              value = 12,
                               className='form-control-lg')
                 ]
             ),
@@ -216,17 +218,19 @@ app.layout = html.Div(
                Input('product-group', 'value'),
                Input('product-subgroup', 'value'),
                Input('customers', 'value'),
-                Input('date-agg', 'value')
+                Input('date-agg', 'value'),
+               Input('horizon', 'value')
                ])
 def update_forecast_button(n_clicks,
                            product_group_values,
                            prod_sub_group_values,
                            customer_values,
-                           date_agg_value):
+                           date_agg_value,
+                           horizon):
 
     filtered_bikes_df = filter_table(product_group_values, prod_sub_group_values,customer_values)
 
-    sales_df = aggregate_time_series(filtered_bikes_df, date_agg_value)
+    sales_df, agg_period = aggregate_time_series(filtered_bikes_df, date_agg_value)
 
     print(sales_df.head())
 
@@ -235,9 +239,18 @@ def update_forecast_button(n_clicks,
                          name='Sales History',
                          line=dict(color='#2C3E4D'))
 
+    prediction, dates = predict_n_future_sales(sales_df, n_future=int(horizon), period=agg_period)
+
+    print(prediction, dates)
+    print()
+    future = go.Scatter(x=list(dates),
+                         y=list(prediction),
+                         name='Sales Forecast',
+                         line=dict(color='#cc1606'))
+
     graph_layout = dict(title='Sales Forecast Chart')
 
-    fig = dict(data=[history],
+    fig = dict(data=[history, future],
                layout=graph_layout)
 
     return fig

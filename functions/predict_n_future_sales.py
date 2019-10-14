@@ -1,7 +1,6 @@
 import xgboost as xgb
 import pandas as pd
 import numpy as np
-from datetime import datetime
 from functions.ts_feature_extractor import extract_features_from_dataframe
 
 def predict_n_future_sales(data, n_future, period):
@@ -15,6 +14,7 @@ def predict_n_future_sales(data, n_future, period):
     df, y = make_future_dataframe(data, n_future, period)
 
     X = df.iloc[:-n_future, :].values
+    y_hat = y.index[-n_future:]
     y = y.iloc[:-n_future].values
 
     regressor = xgb.XGBRegressor(max_depth=6,
@@ -27,7 +27,7 @@ def predict_n_future_sales(data, n_future, period):
 
     future_data = regressor.predict(df.iloc[-n_future:,:].values)
 
-    return future_data
+    return future_data, y_hat
 
 def make_future_dataframe(df, n_future, period):
     index = df.index
@@ -38,4 +38,5 @@ def make_future_dataframe(df, n_future, period):
 
     whole_df = pd.concat([df, future_df])
     # print(future_df)
+
     return extract_features_from_dataframe(whole_df, 'price_ext', lag=3)

@@ -16,4 +16,4 @@ def aggregate_time_series(df, time_unit):
         "Year" : "Y"
     }
 
-    return df[["price_ext"]].resample(taud[time_unit]).sum()
+    return df[["price_ext"]].resample(taud[time_unit]).sum(), taud[time_unit]
