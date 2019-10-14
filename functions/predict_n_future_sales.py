@@ -22,7 +22,7 @@ def predict_n_future_sales(data, n_future, period, model='xgboost'):
         regressor = xgb.XGBRegressor(max_depth=6,
                                      learning_rate=0.6,
                                      n_estimators=500,
-                                     gamma=0.01
+                                     gamma=0.001
                         )
     else:
         #elastic net
