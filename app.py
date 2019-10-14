@@ -64,7 +64,7 @@ def build_sidebar():
                         id='model',
                     # className='custom-select',
                     options=[{'label':'XGBoost', 'value': 'xgboost'},
-                             {'label':'GLMNet', 'value': 'glmnet'}],
+                             {'label':'Elastic Net', 'value': 'elastic_net'}],
                     value='xgboost',
                     )
                 ]),
@@ -215,6 +215,7 @@ app.layout = html.Div(
 
 @app.callback(Output('forecast-graph', 'figure'),
               [Input('forecast', 'n_clicks'),
+                Input('model', 'value'),
                Input('product-group', 'value'),
                Input('product-subgroup', 'value'),
                Input('customers', 'value'),
@@ -222,6 +223,7 @@ app.layout = html.Div(
                Input('horizon', 'value')
                ])
 def update_forecast_button(n_clicks,
+                           model,
                            product_group_values,
                            prod_sub_group_values,
                            customer_values,
@@ -239,10 +241,11 @@ def update_forecast_button(n_clicks,
                          name='Sales History',
                          line=dict(color='#2C3E4D'))
 
-    prediction, dates = predict_n_future_sales(sales_df, n_future=int(horizon), period=agg_period)
+    prediction, dates = predict_n_future_sales(sales_df, n_future=int(horizon), period=agg_period, model=model)
 
     print(prediction, dates)
     print()
+
     future = go.Scatter(x=list(dates),
                          y=list(prediction),
                          name='Sales Forecast',

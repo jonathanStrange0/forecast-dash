@@ -1,9 +1,10 @@
 import xgboost as xgb
 import pandas as pd
 import numpy as np
+from sklearn.linear_model import ElasticNet
 from functions.ts_feature_extractor import extract_features_from_dataframe
 
-def predict_n_future_sales(data, n_future, period):
+def predict_n_future_sales(data, n_future, period, model='xgboost'):
     '''
 
     :param data:
@@ -17,16 +18,21 @@ def predict_n_future_sales(data, n_future, period):
     y_hat = y.index[-n_future:]
     y = y.iloc[:-n_future].values
 
-    regressor = xgb.XGBRegressor(max_depth=6,
-                                 learning_rate=0.6,
-                                 n_estimators=500,
-                                 gamma=0.01
-                    )
+    if model == 'xgboost':
+        regressor = xgb.XGBRegressor(max_depth=6,
+                                     learning_rate=0.6,
+                                     n_estimators=500,
+                                     gamma=0.01
+                        )
+    else:
+        #elastic net
+        regressor = ElasticNet(alpha=0.05)
+
 
     regressor.fit(X,y)
 
     future_data = regressor.predict(df.iloc[-n_future:,:].values)
-
+    print(future_data)
     return future_data, y_hat
 
 def make_future_dataframe(df, n_future, period):
