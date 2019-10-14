@@ -132,8 +132,8 @@ def build_sidebar():
                                     {'label':'Day','value':'Day'},
                                     {'label': 'Week', 'value':'Week'},
                                     {'label': 'Month', 'value':'Month'},
-                                    {'label': 'Quarter', 'value':'Quarter'},
-                                    {'label': 'Year', 'value':'Year'}
+                                    {'label': 'Quarter', 'value':'Quarter'}#,
+                                    # {'label': 'Year', 'value':'Year'}
                              ],
                                 value='Week'
                     )
