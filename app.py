@@ -45,7 +45,8 @@ def build_banner():
                 id="banner-text",
                 children=[
                     html.H3("Forecast Dashboard"),
-                    html.H4("Reimplementation of Matt Dancho's shiny code in Dash")
+                    html.H4("Reimplementation of Matt Dancho's shiny code in Dash"),
+                    html.H4("By Jonathan Mucha")
                 ])
 
         ],style={'color': 'white'})
