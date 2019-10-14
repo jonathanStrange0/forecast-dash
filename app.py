@@ -12,7 +12,8 @@ import numpy as np
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 df = collect_bike_data("assets/bikes_database.sqlite")
-# print(df.head())
+
+server = app.server
 
 
 ### Helper functions ###
