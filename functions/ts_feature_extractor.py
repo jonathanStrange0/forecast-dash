@@ -36,22 +36,22 @@ def extract_features_from_dataframe(df, value_column, lag):
     # Drop any features just created that are constants:
     feature_df = feature_df.loc[:, feature_df.apply(pd.Series.nunique) != 1]
 
-    # Generate Lag features
-    lagged_values = [df.shift(i) for i in range(lag + 1)]
-    lag_df = pd.concat(lagged_values[1:], axis=1)
-    print(lag_df.head())
-    lag_cols = ['value (t-' + str(x) + ')' for x in range(1, lag + 1)]
-    print(lag_cols)
-    lag_df.columns = lag_cols
-
-    # Generate rolling window stats
-    window = lag_df[['value (t-' + str(lag) + ')']].rolling(window=(lag))
-    lag_df['rolling_mean'] = window.mean()
-    lag_df['rolling_min'] = window.min()
-    lag_df['rolling_max'] = window.max()
+    # # Generate Lag features
+    # lagged_values = [df.shift(i) for i in range(lag + 1)]
+    # lag_df = pd.concat(lagged_values[1:], axis=1)
+    # print(lag_df.head())
+    # lag_cols = ['value (t-' + str(x) + ')' for x in range(1, lag + 1)]
+    # print(lag_cols)
+    # lag_df.columns = lag_cols
+    #
+    # # Generate rolling window stats
+    # window = lag_df[['value (t-' + str(lag) + ')']].rolling(window=(lag))
+    # lag_df['rolling_mean'] = window.mean()
+    # lag_df['rolling_min'] = window.min()
+    # lag_df['rolling_max'] = window.max()
 
     # Build the feature dataframe
-    feature_df = pd.concat([feature_df, lag_df], axis=1)
+    # feature_df = pd.concat([feature_df, lag_df], axis=1)
     feature_df.dropna(inplace=True)
 
     return feature_df, df[value_column]
